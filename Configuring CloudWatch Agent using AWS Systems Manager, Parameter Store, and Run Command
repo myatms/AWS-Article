@@ -1,0 +1,144 @@
+Configuring CloudWatch Agent using AWS Systems Manager, Parameter Store, and Run Command
+
+
+ဒီ Labs မှာတော့ Server အရေအတွက် အများကြီးကို Systems Manager မှ တဆင့် တပြိုင်နက် CloudWatch Agent သွင်းယူပုံ Demo လေး ကို တဆင့်ခြင်း ရေးသားပေးသွားပါမယ်။
+
+အဓိက Systems Manager သုံး ရတဲ့အကြောင်းကတော့ Server တစ်လုံးထဲဆို Terminal ကနေ သွင်းယူလို့ရပေမဲ့ Server အရေအတွက်များလာရင်တော့ အဆင်မပြေတော့ပါဘူး။ အချိန်တွေ အများကြီးကုန်ပါတယ်။
+
+ဒီအတွက် ဒီ Labs က အားလုံးကိုအသုံးဝင်စေမှာပါ။
+
+Labs မှာ အဓိက သုံး သွားမဲ့ Service လေးတွေကတော့
+
+EC2
+
+IAM
+
+SSM Parameter Store
+
+SSM Run Command
+
+Cloud Watch Metrics
+
+တို့ပဲဖြစ်ပါတယ်။
+
+ပထမဆုံး အနေနဲ့ EC2 Instance နှစ်လုံး Create လိုက်ပါမယ်။တစ်လုံးကို Amazon Linux 2023 သုံးထားပြီး နောက်တလုံးကို Ubuntu 22.04 LTS သုံးပါမယ်။ Linux Distributions မတူတဲ့အတွက် Package Manager လဲ မတူတာ အားလုံးသိပြီး ဖြစ်မှာပါ။ ဒါပေမဲ့ Distro မတူလဲ Systems Manager မှ CloudWatch Agent ကိုတပြိုင်ထဲသွင်းနိုင်ပါတယ်။
+
+Resource Group နဲ့ စနစ်တကျသုံးချင်တဲ့အတွက် Instance တစ်လုံးချင်းစီ Tags မှာ မှတ်ရလွယ်အောင် env : dev ဆိုပြီး Key Value ပုံစံနဲ့ ပေးလိုက်ပါမယ်။
+
+Search Bar ကနေ Resource Group & Tag Editor ဆိုပြီး ရိုက်ပါမယ်။
+
+Create Resource group ကိုနိုပ် ပြီး
+
+Tag Based Resource Group တစ်ခု့ဖန်တီးပါမယ်။
+
+Resource Types မှာ AWS::EC2::Instance ရွေးပါမယ်။
+
+Tags နေရာ မှာ Key ကို "env" Valueကို "dev" ထားပြီး Add ကိုနိုပ်ပါမယ်။
+
+Group Name “development” လို့ပေးပြီး “Create group” ကိုနိုပ်ပါမယ်။
+
+AWS Resource Groups ထဲမှာ development အမည်နဲ့ Group တစ်ခု့ရှိနေပြီး Instance နှစ်လုံးပါနေတာတွေ့ရပါမယ်။ Tags Name env : dev မှန်သမျှ ဒီ "development" Resource Group အောက်ဆွဲသွင်းမှာဖြစ်ပြီး Systems Manager နဲ့တွဲသုံးသည့်အခါ ပိုမို မြန်ဆန်စေမှာဖြစ်ပါတယ်။
+
+Identity and Access Management (IAM) ထဲသွားပြီး Roles တစ်ခု့ Create လုပ်ပါမယ်။
+
+Create Role ကိုနိုပ်၍AWS Service ထဲမှ EC2 ကိုရွေးကာ
+
+AmazonSSMManagedInstanceCore နဲ့ CloudWatchAgentServerPolicy နှစ်ခု့ကို ရွေးပြီး Role Name ကို EC2Custom ဟု့ပေးပါမည်။
+
+IAM Role Create ပြီးလျှင် EC2 Console မှာရှိတဲ့ Instance တစ်လုံးချင်းဆီမှာ IAM Role ကို Attach တွဲပေးပါမယ်။
+
+IAM Role တွဲ ချင်တဲ့ Instance ကို Select လုပ်ပြီး Actions > Security > Modify IAM role ကိုနိုပ်ကာ တွဲနိုင်ပါတယ်။
+
+AWS Search Bar မှာ Systems Manager လို့ရိုက်ပြီး Systems Manager ရဲ့ Console ဆီသွားပါမယ်။
+
+Systems Manager ရဲ့ ဘယ်ဘက် အလယ်လောက်မှာရှိတဲ့ Fleet Manager ထဲဝင်ကြည့်ပါမယ်။ Instance နှစ်လုံးစလုံး Systems Manager နဲ့ ချိတ်မိနေပြီဖြစ်ပါတယ်။
+
+ဒါဆို ပထမအဆင့်ဖြစ်တဲ့ EC2 Instance Create လုပ်ခြင်းနဲ့ Systems Manager နဲ့ ချိတ်ဆက်ခြင်းပြီးပါပြီ။
+
+ဒုတိယအဆင့် အနေနဲ့ ကျနော်တို့ ကြည့်ချင်တဲ့ Matric တွေအတွက် Json Configuration File တစ်ခု့ Systems Manager Parameter Store မှာ ဖန်တီးပေးရပါမယ်။
+
+ဒီ Labs လေးမှာတော့ အဓိကအနေနဲ့ Memory နဲ့ Disk အတွက် ပဲ သီးသန့် ပြောပေးသွားပါမယ်။
+
+Systems Manager > Parameter Store ကိုသွားပါမယ်။ Create Parameter ကိုနိုပ်ပြီး “CustomCWLinux” အမည်ပေးပါမည်။
+
+Tier “Standard” ထားကာ Type မှာ String ဖြစ်ပါတယ်။
+
+Value ထဲတွင်ထည့်ရမည့် Json Code မှာအောက်ပါအတိုင်းထည့်ရပါမည်။
+
+
+
+{
+  "metrics": {
+    "namespace": "Linux-Metrics",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "InstanceType": "${aws:InstanceType}"
+    },
+    "metrics_collected": {
+      "disk": {
+        "measurement": [
+          "disk_total",
+          "disk_used_percent",
+          "disk_free"
+        ],
+        "metrics_collection_interval": 60,
+        "resources": [
+          "*"
+        ],
+        "ignore_file_system_types": [
+          "sysfs", "devtmpfs", "squashfs", "tmpfs", "rootfs", "overlay"
+        ],
+        "drop_device": true
+      },
+      "mem": {
+        "measurement": [
+          "mem_total",
+          "mem_used_percent",
+          "mem_available_percent"
+        ],
+        "metrics_collection_interval": 60
+      }
+    }
+  }
+}
+
+Name Space မှာအမည်ပေးထားခြင်းအားဖြင့် Custom Name Spaces Metrics Group များခွဲထားနိုင်ပြီး Cloud Watch Metrics တွင် လွယ်ကူစွာဝင်ကြည့်နိုင်မည်ဖြစ်ပါတယ်။
+
+ထပ်မံ၍ အသေးစိတ် ရေးလိုပါက ယခု့ဖော်ပြထားသော link တွင် လေ့လာနိုင်ပါတယ်။
+
+CloudWatch-Agent-Configuration-File-Details
+
+ယခု့အဆင်တွင် ပထမအနေဖြင့် CloudWatch Agent ကို Systems Manager ရှိ Run Command မှ သွင်းယူမည်ဖြစ်ပြီး
+
+ဒုတိယအနေဖြင့် Agent သွင်းပြီးမှသာ Parameter Store ရှိ Json Config File နှင့် ချိတ်ဆက်ကာ စတင် Run လို့ရမည်ဖြစ်ပါည်။ ဤအဆင့် တစ်ခု့လုံးကို Run Command ဖြင့်သာ လုပ်ဆောင်သွားမည်ဖြစ်ပါတယ်။
+
+Systems Manager > Run Command သိုဝင်ရောက်ပြီး Search တွင် AWS-ConfigureAWSPackage ကိုရိုက်၍ ကျလာသည်ကို select လုပ်ရပါမည်။
+
+Command Parameters တွင် Name တစ်ခု့ကိုသာ AmazonCloudWatchAgent ဟု့ပေးရပါမည်။
+
+Target Selection တွင် Choose a resource group ကိုရွေးကာ Resource Group တွင် ယခင်ဆောက်ထားခဲ့သော “development” ကိုရွေး ရပါမည်။ Resource Group အသုံးပြု့ခြင်းဖြင့် Instance တစ်လုံးချင်း Manual ရွေးရခြင်းမှ သက်သာစေမည်ဖြစ်ပါသည်။
+
+ထို့နောက် Run ကိုနိုပ်ကာ Agent သွင်းယူမည်ဖြစ်ပါတယ်။
+
+Success ဟုပြနေလျှင် CloudWatch Agent သွင်းခြင်းအောင်မြင်သည်ပြောခြင်းဖြစ်ပါသည်။
+
+****************************************************************************
+
+နောက်တစ်ဆင့်အနေနဲ့ Run command ကိုပဲ သုံးကာ Agent Start မည်ဖြစ်ပါတယ်။
+
+Systems Manager > Run commandရှိ Search တွင် AmazonCloudWatch-ManageAgent ဟု့ရိုက်ကာပေါ်လာသည်ကို Selectလုပ်ရပါမည်။
+
+Command Parameters ရှိ Optional Configuration Source တွင် Parameter Store ရှိ Json Code သိမ်းဆည်းထားသည့် File အမည်အားထည့်ပေးရပါမည်။
+
+Target Selection တွင်လည်း Resource Group ရှိ development ကိုသာ ပြန်ရွေးပေးရပါမည်။
+
+Run ကိုနိုပ်ကာ Agent အားစတင်မည်ဖြစ်ပါတယ်။
+
+Success ပြနေတာမြင်ရလျှင်တော့ Agent Start ခြင်း အောင်မြင်သွားသည်ဟု့ သက်မှတ်လို့ရပါသည်။
+
+နောက်ဆုံးအဆင့်အနေဖြင့် Cloud Watch ရှိ Metrics သို့သွားကာ Systems Manager Parameter Store ၏ Json Code ထဲတွင် သက်မှတ်ထားသောအမည်ဖြင့် Custom Name Spaces တစ်ခု့ ဆောက်ထားခြင်းရှိမရှိ စစ်ဆေးပါမည်။
+
+Linux-Metrics အမည်ရှိ Custom Name Spaces ရှိနေသည်ကိုမြင်ရမည်ဖြစ်ပြီး အထဲသို့ဝင်ရောက်ကာ Memory Metric များနှင် Disk Metric များကို ကြည့်ရှု့နိုင်မည်ဖြစ်ပါသည်။
+
+
+
